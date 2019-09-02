@@ -1,15 +1,13 @@
 #include "MIDIUSB.h"
-#define NUM_BUTTONS  1
+#define NUM_BUTTONS  2
 
-const uint8_t button1 = 2;
 const uint8_t ledPin = 13;
 
-const uint8_t buttons[NUM_BUTTONS] = {button1};
-const byte controlCommands[NUM_BUTTONS] = {1};
+const uint8_t buttons[NUM_BUTTONS] = {2, 3}; // button pins
+const byte controlCommands[NUM_BUTTONS] = {1, 2}; // CC commands without value
 
 uint8_t pressedButtons = 0x00;
 uint8_t previousButtons = 0x00;
-
 
 void setup() {
   for (int i = 0; i < NUM_BUTTONS; i++) {
@@ -24,16 +22,12 @@ void loop() {
   sendCommand();
 }
 
-void readButtons()
-{
-  for (int i = 0; i < NUM_BUTTONS; i++)
-  {
-    if (digitalRead(buttons[i]) == HIGH)
-    {
+void readButtons() {
+  for (int i = 0; i < NUM_BUTTONS; i++) {
+    if (digitalRead(buttons[i]) == HIGH) {
       bitWrite(pressedButtons, i, 1);
       delay(50);
-    }
-    else {
+    } else {
       bitWrite(pressedButtons, i, 0);
     }
   }
@@ -49,9 +43,11 @@ void sendCommand() {
     if (bitRead(pressedButtons, i) != bitRead(previousButtons, i)) {
       if (bitRead(pressedButtons, i)) {
         bitWrite(previousButtons, i , 1);
+        
         controlChange(0, controlCommands[i], 0);
         digitalWrite(ledPin, HIGH);
         MidiUSB.flush();
+        
       } else {
         bitWrite(previousButtons, i , 0);
         digitalWrite(ledPin, LOW);
